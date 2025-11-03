@@ -47,6 +47,7 @@ use App\Http\Controllers\AdminIdentitasSitusController;
 use App\Http\Controllers\AdminKategoriController;
 use App\Http\Controllers\AdminVisiMisiController;
 use App\Http\Controllers\AdminAnggaranController;
+use App\Http\Controllers\AdminPerangkatDesaController;
 
 // New Puskesmas Admin Controllers
 use App\Http\Controllers\AdminPoliklinikController;
@@ -167,6 +168,8 @@ Route::put('admin/sejarah/{id}', [AdminSejarahController::class, 'update']);
 Route::get('admin/visi-misi', [AdminVisiMisiController::class, 'index']);
 Route::get('admin/visi-misi/{id}/edit', [AdminVisiMisiController::class, 'edit']);
 Route::put('admin/visi-misi/{id}', [AdminVisiMisiController::class, 'update']);
+
+Route::resource('admin/perangkat-desa', AdminPerangkatDesaController::class);
 
 Route::resource('admin/agama', AdminAgamaController::class);
 
