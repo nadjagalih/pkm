@@ -131,7 +131,7 @@ trait ItemBaseTrait
         if ($expiration instanceof \DateTimeInterface) {
             $this->expirationDate = $expiration;
         } else {
-            throw new \InvalidArgumentException('$expiration must be an object implementing the DateTimeInterface');
+            throw new phpFastCacheInvalidArgumentException('$expiration must be an object implementing the DateTimeInterface got: ' . gettype($expiration));
         }
 
         return $this;
@@ -174,9 +174,9 @@ trait ItemBaseTrait
                  */
                 $time = 30 * 24 * 3600 * 5;
             }
-            $this->expirationDate = $this->expirationDate->add(new \DateInterval(sprintf('PT%dS', $time)));
+            $this->expirationDate = (new \DateTime())->add(new \DateInterval(sprintf('PT%dS', $time)));
         } else if ($time instanceof \DateInterval) {
-            $this->expirationDate = $this->expirationDate->add($time);
+            $this->expirationDate = (new \DateTime())->add($time);
         } else {
             throw new \InvalidArgumentException('Invalid date format');
         }
@@ -190,6 +190,13 @@ trait ItemBaseTrait
      *
      *******************/
 
+    /**
+     * @return string
+     */
+    public function getEncodedKey()
+    {
+        return md5($this->getKey());
+    }
 
     /**
      * @return mixed
@@ -212,12 +219,7 @@ trait ItemBaseTrait
      */
     public function getTtl()
     {
-        $ttl = $this->expirationDate->getTimestamp() - time();
-        if ($ttl > 2592000) {
-            $ttl = time() + $ttl;
-        }
-
-        return $ttl;
+        return max(0, $this->expirationDate->getTimestamp() - time());
     }
 
     /**
@@ -418,15 +420,13 @@ trait ItemBaseTrait
     }
 
     /**
-     * @throws \RuntimeException
+     * Implements \JsonSerializable interface
+     * @return mixed
      */
-    /*    final public function __sleep()
-        {
-            $info = get_object_vars($this);
-            $info[ 'driver' ] = 'object(' . get_class($info[ 'driver' ]) . ')';
-    
-            return (array) $info;
-        }*/
+    public function jsonSerialize()
+    {
+        return $this->get();
+    }
 
     /**
      * Prevent recursions for Debug (php 5.6+)

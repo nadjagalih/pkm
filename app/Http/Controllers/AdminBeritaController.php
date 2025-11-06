@@ -10,6 +10,8 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Cviebrock\EloquentSluggable\Services\SlugService;
 
 class AdminBeritaController extends Controller
@@ -82,9 +84,9 @@ class AdminBeritaController extends Controller
             'judul'         =>  $request->judul,
             'slug'          =>  $request->slug,
             'body'          =>  $request->body,
-            'gambar'        =>  $path . $fileName,
+            'gambar'        =>  $gambar,
             'excerpt'       =>  Str::limit(strip_tags($request->body), 100),
-            'user_id'       =>  auth()->user()->id,
+            'user_id'       =>  Auth::id(),
             'status_id'     =>  $request->status_id,
             'kategori_id'   =>  $request->kategori_id
         ]);
@@ -112,54 +114,69 @@ class AdminBeritaController extends Controller
     public function update(Request $request, $id)
     {
         $berita = Berita::find($id);
-        $validator = Validator::make($request->all(), [
+        
+        // Validasi dasar
+        $rules = [
             'judul'         => 'required|max:255',
             'slug'          => 'required',
             'body'          => 'required',
             'kategori_id'   => 'required',
             'status_id'     => 'required'
-        ],[
+        ];
+        
+        $messages = [
             'judul.required'        => 'Wajib menambahkan judul !',
             'slug.required'         => 'Wajib menambahkan slug !',
             'body.required'         => 'Wajib menambahkan isi berita !',
             'kategori_id.required'  => 'Wajib memilih kategori !',
             'status_id.required'    => 'Wajib memilih status berita !'
-        ]);
+        ];
 
+        // Validasi slug jika berubah
         if($request->slug != $berita->slug){
-            $berita->slug  = 'required|unique:beritas';
+            $rules['slug'] = 'required|unique:beritas';
+            $messages['slug.unique'] = 'Slug sudah digunakan';
         }
 
+        // Validasi gambar jika ada upload baru
         if($request->hasFile('gambar')){
-            if($berita->gambar){
-                unlink('.' .Storage::url($berita->gambar));
+            $rules['gambar'] = 'required|mimes:jpeg,jpg,png';
+            $messages['gambar.mimes'] = 'Format gambar yang di izinkan Jpeg, Jpg, Png';
+        }
+
+        $validator = Validator::make($request->all(), $rules, $messages);
+
+        if ($validator->fails()) {
+            return redirect("/admin/berita/{$berita->id}/edit")
+                ->withErrors($validator)
+                ->withInput();
+        }
+
+        // Handle upload gambar baru
+        if($request->hasFile('gambar')){
+            // Hapus gambar lama jika ada
+            if($berita->gambar && Storage::disk('public')->exists($berita->gambar)){
+                Storage::disk('public')->delete($berita->gambar);
             }
+            
             $path       = 'img-berita/';
             $file       = $request->file('gambar');
             $extension  = $file->getClientOriginalExtension(); 
             $fileName   = uniqid() . '.' . $extension; 
             $gambar     = $file->storeAs($path, $fileName, 'public');
-        } else {
-            $validator = Validator::make($request->all(), [
-                'judul'         => 'required|max:255',
-                'slug'          => 'required',
-                'body'          => 'required',
-                'kategori_id'   => 'required',
-                'status_id'     => 'required'
-            ],[
-                'judul.required'        => 'Wajib menambahkan judul !',
-                'slug.required'         => 'Wajib menambahkan slug !',
-                'body.required'         => 'Wajib menambahkan isi berita !',
-                'kategori_id.required'  => 'Wajib memilih kategori !',
-                'status_id.required'    => 'Wajib memilih status berita !'
+            
+            // Log untuk debugging
+            Log::info('Gambar baru diupload', [
+                'path' => $gambar,
+                'filename' => $fileName,
+                'old_image' => $berita->gambar
             ]);
+        } else {
+            // Gunakan gambar lama jika tidak ada upload baru
             $gambar = $berita->gambar;
+            
+            Log::info('Menggunakan gambar lama', ['gambar' => $gambar]);
         }
-        if ($validator->fails()) {
-            return redirect("/admin/berita/{$berita->id}/edit")
-                ->withErrors($validator)
-                ->withInput();
-        };
 
         $berita->update([
             'judul'         => $request->judul,
@@ -167,7 +184,7 @@ class AdminBeritaController extends Controller
             'body'          => $request->body,
             'gambar'        => $gambar,
             'excerpt'       => Str::limit(strip_tags($request->body), 100),
-            'user_id'       => auth()->user()->id,
+            'user_id'       => Auth::id(),
             'status_id'     => $request->status_id,
             'kategori_id'   => $request->kategori_id
         ]);
@@ -182,7 +199,12 @@ class AdminBeritaController extends Controller
     public function destroy($id)
     {
         $berita = Berita::find($id);
-        unlink('.'.Storage::url($berita->gambar));
+        
+        // Cek dan hapus gambar jika ada
+        if($berita->gambar && Storage::disk('public')->exists($berita->gambar)){
+            Storage::disk('public')->delete($berita->gambar);
+        }
+        
         $berita->delete();
 
         return redirect('/admin/berita')->with('success', 'Berhasil menghapus berita');

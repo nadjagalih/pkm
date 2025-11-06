@@ -73,10 +73,11 @@ class Driver extends DriverAbstract
             $data = $this->encode($this->driverPreWrap($item));
 
             $toWrite = true;
-            /*
+
+            /**
              * Skip if Existing Caching in Options
              */
-            if (isset($option[ 'skipExisting' ]) && $option[ 'skipExisting' ] == true && file_exists($file_path)) {
+            if (isset($this->config[ 'skipExisting' ]) && $this->config[ 'skipExisting' ] == true && file_exists($file_path)) {
                 $content = $this->readfile($file_path);
                 $old = $this->decode($content);
                 $toWrite = false;
@@ -85,7 +86,9 @@ class Driver extends DriverAbstract
                 }
             }
 
-            // Force write
+            /**
+             * Force write
+             */
             try {
                 if ($toWrite == true) {
                     $f = fopen($file_path, 'w+');
@@ -117,15 +120,8 @@ class Driver extends DriverAbstract
         }
 
         $content = $this->readfile($file_path);
-        $object = $this->decode($content);
 
-        if ($this->driverUnwrapTime($object)->getTimestamp() < time()) {
-            @unlink($file_path);
-
-            return null;
-        }
-
-        return $object;
+        return $this->decode($content);
 
     }
 
@@ -142,6 +138,10 @@ class Driver extends DriverAbstract
         if ($item instanceof Item) {
             $file_path = $this->getFilePath($item->getKey(), true);
             if (file_exists($file_path) && @unlink($file_path)) {
+                $dir = dirname($file_path);
+                if (!(new \FilesystemIterator($dir))->valid()) {
+                    rmdir($dir);
+                }
                 return true;
             } else {
                 return false;

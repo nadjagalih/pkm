@@ -12,10 +12,9 @@
  *
  */
 
-namespace phpFastCache\Drivers\Devnull;
+namespace phpFastCache\Drivers\Devfalse;
 
 use phpFastCache\Core\DriverAbstract;
-use phpFastCache\Core\StandardPsr6StructureTrait;
 use phpFastCache\Entities\driverStatistic;
 use phpFastCache\Exceptions\phpFastCacheDriverCheckException;
 use phpFastCache\Exceptions\phpFastCacheDriverException;
@@ -68,13 +67,20 @@ class Driver extends DriverAbstract
 
     /**
      * @param \Psr\Cache\CacheItemInterface $item
-     * @return mixed
+     * @return array [
+     *      'd' => 'THE ITEM DATA'
+     *      't' => 'THE ITEM DATE EXPIRATION'
+     *      'g' => 'THE ITEM TAGS'
+     * ]
      */
     protected function driverRead(CacheItemInterface $item)
     {
-        return null;
+        return [
+          self::DRIVER_DATA_WRAPPER_INDEX => false,
+          self::DRIVER_TAGS_WRAPPER_INDEX => [],
+          self::DRIVER_TIME_WRAPPER_INDEX => new \DateTime(),
+        ];
     }
-
     /**
      * @param \Psr\Cache\CacheItemInterface $item
      * @return bool

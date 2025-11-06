@@ -147,7 +147,11 @@
           <div class="card">
             {{-- Wrap the image with an anchor tag to link to the detail page --}}
             <a href="/berita/{{ $berita->slug }}" class="d-block">
-              <img src="{{ asset('storage/' . $berita->gambar) }}" alt="Gambar Berita" class="card-img-top">
+              @if($berita->gambar && file_exists(public_path('storage/' . $berita->gambar)))
+                <img src="{{ asset('storage/' . $berita->gambar) }}" alt="Gambar Berita" class="card-img-top">
+              @else
+                <img src="https://via.placeholder.com/400x250/0d6efd/ffffff?text=Gambar+Tidak+Tersedia" alt="Gambar Berita" class="card-img-top">
+              @endif
             </a>
             <div class="card-body">
               {{-- Also make the title clickable for a better user experience --}}

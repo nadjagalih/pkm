@@ -74,7 +74,15 @@ class Driver extends DriverAbstract
         if ($item instanceof Item) {
             $ttl = $item->getExpirationDate()->getTimestamp() - time();
 
-            return $this->instance->setex($item->getKey(), $ttl, $this->encode($this->driverPreWrap($item)));
+            /**
+             * @see https://redis.io/commands/setex
+             * @see https://redis.io/commands/expire
+             */
+            if($ttl <= 0){
+                return $this->instance->expire($item->getKey(), 0);
+            }else{
+                return $this->instance->setex($item->getKey(), $ttl, $this->encode($this->driverPreWrap($item)));
+            }
         } else {
             throw new \InvalidArgumentException('Cross-Driver type confusion detected');
         }
@@ -124,43 +132,14 @@ class Driver extends DriverAbstract
      */
     protected function driverConnect()
     {
-        $server = isset($this->config[ 'redis' ]) ? $this->config[ 'redis' ] : [
+        $config = isset($this->config[ 'predis' ]) ? $this->config[ 'predis' ] : [];
+
+        $this->instance = new PredisClient(array_merge([
           'host' => '127.0.0.1',
-          'port' => '6379',
-          'password' => '',
-          'database' => '',
-        ];
-
-        $config = [
-          'host' => $server[ 'host' ],
-        ];
-
-        $port = isset($server[ 'port' ]) ? $server[ 'port' ] : '';
-        if ($port != '') {
-            $config[ 'port' ] = $port;
-        }
-
-        $password = isset($server[ 'password' ]) ? $server[ 'password' ] : '';
-        if ($password != '') {
-            $config[ 'password' ] = $password;
-        }
-
-        $database = isset($server[ 'database' ]) ? $server[ 'database' ] : '';
-        if ($database != '') {
-            $config[ 'database' ] = $database;
-        }
-
-        $timeout = isset($server[ 'timeout' ]) ? $server[ 'timeout' ] : '';
-        if ($timeout != '') {
-            $config[ 'timeout' ] = $timeout;
-        }
-
-        $read_write_timeout = isset($server[ 'read_write_timeout' ]) ? $server[ 'read_write_timeout' ] : '';
-        if ($read_write_timeout != '') {
-            $config[ 'read_write_timeout' ] = $read_write_timeout;
-        }
-
-        $this->instance = new PredisClient($config);
+          'port' => 6379,
+          'password' => null,
+          'database' => null,
+        ], $config));
 
         return true;
     }
@@ -176,9 +155,15 @@ class Driver extends DriverAbstract
      */
     public function getStats()
     {
+        $info = $this->instance->info();
+        $size = (isset($info['Memory']['used_memory']) ? $info['Memory']['used_memory'] : 0);
+        $version = (isset($info['Server']['redis_version']) ? $info['Server']['redis_version'] : 0);
+        $date = (isset($info['Server'][ 'uptime_in_seconds' ]) ? (new \DateTime())->setTimestamp(time() - $info['Server'][ 'uptime_in_seconds' ]) : 'unknown date');
+
         return (new driverStatistic())
+          ->setData(implode(', ', array_keys($this->itemInstances)))
           ->setRawData($this->instance->info())
-          ->setSize(0)
-          ->setInfo('');
+          ->setSize($size)
+          ->setInfo(sprintf("The Redis daemon v%s is up since %s.\n For more information see RawData. \n Driver size includes the memory allocation size.", $version, $date->format(DATE_RFC2822)));
     }
 }

@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Contracts\Cache\Store;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Auth;
 
 class AdminPerangkatDesaController extends Controller
 {
@@ -66,7 +67,7 @@ class AdminPerangkatDesaController extends Controller
             'nama'      => $request->nama,
             'jabatan'   => $request->jabatan,
             'foto'      => $path . $fileName,
-            'user_id'   => auth()->user()->id
+            'user_id'   => Auth::id()
         ]);
 
         return redirect('/admin/perangkat-desa')->with('success', 'Berhasil menambahkan data perangkat desa');
@@ -97,8 +98,9 @@ class AdminPerangkatDesaController extends Controller
         ]);
 
         if($request->hasFile('foto')){
-            if($perangkatDesa->foto){
-                unlink('.' .Storage::url($perangkatDesa->foto));
+            // Hapus foto lama jika ada
+            if($perangkatDesa->foto && Storage::disk('public')->exists($perangkatDesa->foto)){
+                Storage::disk('public')->delete($perangkatDesa->foto);
             }
             $path       = 'img-perangkat/';
             $file       = $request->file('foto');
@@ -127,7 +129,7 @@ class AdminPerangkatDesaController extends Controller
             'nama'      => $request->nama,
             'jabatan'   => $request->jabatan,
             'foto'      => $foto,
-            'user_id'   => auth()->user()->id
+            'user_id'   => Auth::id()
         ]);
 
         return redirect('/admin/perangkat-desa')->with('success', 'Berhasil memperbarui data perangkat desa');
@@ -139,7 +141,11 @@ class AdminPerangkatDesaController extends Controller
      */
     public function destroy(PerangkatDesa $perangkatDesa)
     {
-        unlink('.'.Storage::url($perangkatDesa->foto));
+        // Cek apakah file foto ada sebelum menghapus
+        if($perangkatDesa->foto && Storage::disk('public')->exists($perangkatDesa->foto)){
+            Storage::disk('public')->delete($perangkatDesa->foto);
+        }
+        
         $perangkatDesa->delete();
 
         return redirect('/admin/perangkat-desa')->with('success', 'Berhasil menghapus data perangkat desa');

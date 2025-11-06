@@ -16,6 +16,7 @@ namespace phpFastCache\Core;
 
 use phpFastCache\Cache\ExtendedCacheItemInterface;
 use phpFastCache\CacheManager;
+use phpFastCache\Exceptions\phpFastCacheCoreException;
 use Psr\Cache\CacheItemInterface;
 
 /**
@@ -40,6 +41,7 @@ trait StandardPsr6StructureTrait
      * @param string $key
      * @return \phpFastCache\Cache\ExtendedCacheItemInterface
      * @throws \InvalidArgumentException
+     * @throws phpFastCacheCoreException
      */
     public function getItem($key)
     {
@@ -55,6 +57,9 @@ trait StandardPsr6StructureTrait
                 $driverArray = $this->driverRead($item);
 
                 if ($driverArray) {
+                    if(!is_array($driverArray)){
+                        throw new phpFastCacheCoreException(sprintf('The driverRead method returned an unexpected variable type: %s', gettype($driverArray)));
+                    }
                     $item->set($this->driverUnwrapData($driverArray));
                     $item->expiresAt($this->driverUnwrapTime($driverArray));
                     $item->setTags($this->driverUnwrapTags($driverArray));
@@ -63,11 +68,23 @@ trait StandardPsr6StructureTrait
                          * Using driverDelete() instead of delete()
                          * to avoid infinite loop caused by
                          * getItem() call in delete() method
+                         * As we MUST return an item in any
+                         * way, we do not de-register here
                          */
                         $this->driverDelete($item);
+
+                        /**
+                         * Reset the Item
+                         */
+                        $item->set(null)
+                          ->expiresAfter(abs((int) $this->getConfig()[ 'defaultTtl' ]))
+                          ->setHit(false)
+                          ->setTags([]);
                     } else {
                         $item->setHit(true);
                     }
+                } else {
+                    $item->expiresAfter(abs((int) $this->getConfig()[ 'defaultTtl' ]));
                 }
 
             }
@@ -116,8 +133,6 @@ trait StandardPsr6StructureTrait
      */
     public function hasItem($key)
     {
-        CacheManager::$ReadHits++;
-
         return $this->getItem($key)->isHit();
     }
 
@@ -140,10 +155,21 @@ trait StandardPsr6StructureTrait
     public function deleteItem($key)
     {
         $item = $this->getItem($key);
-        if ($this->hasItem($key) && $this->driverDelete($item)) {
+        if ($item->isHit() && $this->driverDelete($item)) {
             $item->setHit(false);
             CacheManager::$WriteHits++;
-            unset($this->itemInstances[ $key ]);
+            /**
+             * De-register the item instance
+             * then collect gc cycles
+             */
+            $this->deregisterItem($key);
+
+            /**
+             * Perform a tag cleanup to avoid memory leaks
+             */
+            if (strpos($key, self::DRIVER_TAGS_KEY_PREFIX) !== 0) {
+                $this->cleanItemTags($item);
+            }
 
             return true;
         }
@@ -173,6 +199,7 @@ trait StandardPsr6StructureTrait
      * @param \Psr\Cache\CacheItemInterface $item
      * @return mixed
      * @throws \InvalidArgumentException
+     * @throws \RuntimeException
      */
     public function save(CacheItemInterface $item)
     {
@@ -181,7 +208,11 @@ trait StandardPsr6StructureTrait
          */
         if (!array_key_exists($item->getKey(), $this->itemInstances)) {
             $this->itemInstances[ $item->getKey() ] = $item;
+        } else if(spl_object_hash($item) !== spl_object_hash($this->itemInstances[ $item->getKey() ])){
+            throw new \RuntimeException('Spl object hash mismatches ! You probably tried to save a detached item which has been already retrieved from cache.');
         }
+
+
         if ($this->driverWrite($item) && $this->driverWriteTags($item)) {
             $item->setHit(true);
             CacheManager::$WriteHits++;
@@ -195,11 +226,14 @@ trait StandardPsr6StructureTrait
     /**
      * @param \Psr\Cache\CacheItemInterface $item
      * @return \Psr\Cache\CacheItemInterface
+     * @throws \RuntimeException
      */
     public function saveDeferred(CacheItemInterface $item)
     {
         if (!array_key_exists($item->getKey(), $this->itemInstances)) {
             $this->itemInstances[ $item->getKey() ] = $item;
+        }else if(spl_object_hash($item) !== spl_object_hash($this->itemInstances[ $item->getKey() ])){
+            throw new \RuntimeException('Spl object hash mismatches ! You probably tried to save a detached item which has been already retrieved from cache.');
         }
 
         return $this->deferredList[ $item->getKey() ] = $item;

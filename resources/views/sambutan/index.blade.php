@@ -24,17 +24,17 @@
               <div class="text-center">
                 @if($sambutan->foto)
                   <img src="{{ asset('storage/' . $sambutan->foto) }}" 
-                       alt="{{ $sambutan->nama_kepala }}" 
+                       alt="{{ $sambutan->nama }}" 
                        class="img-fluid rounded shadow-lg mb-3"
                        style="max-width: 350px;">
                 @else
                   <img src="{{ asset('assets/img/default-avatar.png') }}" 
-                       alt="{{ $sambutan->nama_kepala }}" 
+                       alt="{{ $sambutan->nama }}" 
                        class="img-fluid rounded shadow-lg mb-3"
                        style="max-width: 350px;">
                 @endif
                 <div class="info-box bg-white p-4 rounded shadow-sm">
-                  <h4 class="fw-bold text-primary mb-2">{{ $sambutan->nama_kepala }}</h4>
+                  <h4 class="fw-bold text-primary mb-2">{{ $sambutan->nama }}</h4>
                   <p class="text-muted mb-0">{{ $sambutan->jabatan }}</p>
                 </div>
               </div>

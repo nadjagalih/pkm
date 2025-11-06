@@ -68,7 +68,7 @@ class Driver extends DriverAbstract
 
     /**
      * @param \Psr\Cache\CacheItemInterface $item
-     * @return mixed
+     * @return null
      */
     protected function driverRead(CacheItemInterface $item)
     {

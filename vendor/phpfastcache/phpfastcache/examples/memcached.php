@@ -17,7 +17,20 @@ use phpFastCache\CacheManager;
 // Include composer autoloader
 require __DIR__ . '/../vendor/autoload.php';
 
-$InstanceCache = CacheManager::getInstance('memcached');
+$InstanceCache = CacheManager::getInstance(['servers' => [
+  [
+    'host' =>'127.0.0.1',
+    'port' => 11211,
+    // 'sasl_user' => false, // optional
+    // 'sasl_password' => false // optional
+  ],
+]]);
+
+/**
+ * In case you need SASL authentication:
+ * Memcache needs to be compiled with a specific option (--enable-memcached-sasl) to use sasl authentication, see:
+ * http://php.net/manual/fr/memcached.installation.php
+ */
 
 /**
  * Try to get $products from Caching First

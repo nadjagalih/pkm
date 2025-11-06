@@ -15,15 +15,15 @@
                     @method('PUT')
                     <div class="card-body">
                         <div class="form-group">
-                            <label for="nama_kepala">Nama Kepala Puskesmas <span class="text-danger">*</span></label>
+                            <label for="nama">Nama Kepala Puskesmas <span class="text-danger">*</span></label>
                             <input type="text" 
-                                   class="form-control @error('nama_kepala') is-invalid @enderror" 
-                                   id="nama_kepala" 
-                                   name="nama_kepala" 
-                                   value="{{ old('nama_kepala', $sambutan->nama_kepala) }}"
+                                   class="form-control @error('nama') is-invalid @enderror" 
+                                   id="nama" 
+                                   name="nama" 
+                                   value="{{ old('nama', $sambutan->nama) }}"
                                    placeholder="Masukkan nama kepala puskesmas"
                                    required>
-                            @error('nama_kepala')
+                            @error('nama')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
@@ -47,7 +47,7 @@
                             @if($sambutan->foto)
                                 <div class="mb-2">
                                     <img src="{{ asset('storage/' . $sambutan->foto) }}" 
-                                         alt="{{ $sambutan->nama_kepala }}" 
+                                         alt="{{ $sambutan->nama }}" 
                                          class="img-thumbnail" 
                                          style="max-width: 200px;">
                                     <p class="text-muted mt-1">Foto saat ini</p>
@@ -76,21 +76,6 @@
                                       placeholder="Masukkan isi sambutan kepala puskesmas"
                                       required>{{ old('isi_sambutan', $sambutan->isi_sambutan) }}</textarea>
                             @error('isi_sambutan')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-
-                        <div class="form-group">
-                            <label for="status">Status <span class="text-danger">*</span></label>
-                            <select class="form-control @error('status') is-invalid @enderror" 
-                                    id="status" 
-                                    name="status"
-                                    required>
-                                <option value="Aktif" {{ old('status', $sambutan->status) == 'Aktif' ? 'selected' : '' }}>Aktif</option>
-                                <option value="Non-Aktif" {{ old('status', $sambutan->status) == 'Non-Aktif' ? 'selected' : '' }}>Non-Aktif</option>
-                            </select>
-                            <small class="form-text text-muted">Hanya sambutan dengan status "Aktif" yang akan ditampilkan di halaman utama</small>
-                            @error('status')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>

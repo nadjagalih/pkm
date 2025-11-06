@@ -40,15 +40,6 @@ trait DriverBaseTrait
     protected $instance;
 
     /**
-     * @param $keyword
-     * @return string
-     */
-    protected function encodeFilename($keyword)
-    {
-        return md5($keyword);
-    }
-
-    /**
      * @param $config_name
      * @param string $value
      */
@@ -214,9 +205,22 @@ trait DriverBaseTrait
     /**
      * @param \phpFastCache\Cache\ExtendedCacheItemInterface $item
      * @return bool
+     * @throws \LogicException
      */
     public function driverWriteTags(ExtendedCacheItemInterface $item)
     {
+        /**
+         * Do not attempt to write tags
+         * on tags item, it can leads
+         * to an infinite recursive calls
+         */
+        if(strpos($item->getKey(), self::DRIVER_TAGS_KEY_PREFIX ) === 0){
+            throw new \LogicException('Trying to set tag(s) to an Tag item index: ' . $item->getKey());
+        }
+
+        /**
+         * @var $tagsItems ExtendedCacheItemInterface[]
+         */
         $tagsItems = $this->getItems($this->getTagKeys($item->getTags()));
 
         foreach ($tagsItems as $tagsItem) {
@@ -241,6 +245,7 @@ trait DriverBaseTrait
                 $tagsItem->expiresAt($item->getExpirationDate());
             }
             $this->driverWrite($tagsItem);
+            $tagsItem->setHit(true);
         }
 
         /**
@@ -263,10 +268,11 @@ trait DriverBaseTrait
              * then remove it from tagsItems index
              */
             if (count($data)) {
-                $tagsItem->expiresAt(max($data));
+                $tagsItem->expiresAt((new \DateTime())->setTimestamp(max($data)));
                 $this->driverWrite($tagsItem);
+                $tagsItem->setHit(true);
             } else {
-                $this->driverDelete($tagsItem);
+                $this->deleteItem($tagsItem->getKey());
             }
         }
 

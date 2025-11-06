@@ -15,6 +15,7 @@
 namespace phpFastCache\Core;
 
 use InvalidArgumentException;
+use phpFastCache\Cache\ExtendedCacheItemInterface;
 use Psr\Cache\CacheItemInterface;
 
 trait ExtendedCacheItemPoolTrait
@@ -63,7 +64,19 @@ trait ExtendedCacheItemPoolTrait
             if ($driverResponse->isHit()) {
                 $items = (array) $driverResponse->get();
 
-                return $this->getItems(array_unique(array_keys($items)));
+                /**
+                 * getItems() may provides expired item(s)
+                 * themselves provided by a cache of item
+                 * keys based stored the tag item.
+                 * Therefore we pass a filter callback
+                 * to remove the expired Item(s) provided by
+                 * the item keys passed through getItems()
+                 *
+                 * #headache
+                 */
+                return array_filter($this->getItems(array_unique(array_keys($items))), function(ExtendedCacheItemInterface $item){
+                    return $item->isHit();
+                });
             } else {
                 return [];
             }
@@ -120,7 +133,7 @@ trait ExtendedCacheItemPoolTrait
         if (is_string($tagName)) {
             $return = null;
             foreach ($this->getItemsByTag($tagName) as $item) {
-                $result = $this->driverDelete($item);
+                $result = $this->deleteItem($item->getKey());
                 if ($return !== false) {
                     $return = $result;
                 }
@@ -240,7 +253,7 @@ trait ExtendedCacheItemPoolTrait
     {
         $return = null;
         foreach ($tagNames as $tagName) {
-            $result = $this->decrementItemsByTag($tagName, $data);
+            $result = $this->appendItemsByTag($tagName, $data);
             if ($return !== false) {
                 $return = $result;
             }
@@ -273,12 +286,92 @@ trait ExtendedCacheItemPoolTrait
     {
         $return = null;
         foreach ($tagNames as $tagName) {
-            $result = $this->decrementItemsByTag($tagName, $data);
+            $result = $this->prependItemsByTag($tagName, $data);
             if ($return !== false) {
                 $return = $result;
             }
         }
 
         return $return;
+    }
+
+    /**
+     * @param \Psr\Cache\CacheItemInterface $item
+     * @return void
+     */
+    public function detachItem(CacheItemInterface $item)
+    {
+        if(isset($this->itemInstances[$item->getKey()])){
+            $this->deregisterItem($item);
+        }
+    }
+
+    /**
+     * @return void
+     */
+    public function detachAllItems()
+    {
+        foreach ($this->itemInstances as $item) {
+            $this->detachItem($item);
+        }
+    }
+
+    /**
+     * @param \Psr\Cache\CacheItemInterface $item
+     * @return void
+     * @throws \LogicException
+     */
+    public function attachItem(CacheItemInterface $item)
+    {
+        if(isset($this->itemInstances[$item->getKey()]) && spl_object_hash($item) !== spl_object_hash($this->itemInstances[ $item->getKey() ])){
+            throw new \LogicException('The item already exists and cannot be overwritten because the Spl object hash mismatches ! You probably tried to re-attach a detached item which has been already retrieved from cache.');
+        }else{
+            $this->itemInstances[$item->getKey()] = $item;
+        }
+    }
+
+
+    /**
+     * @internal This method de-register an item from $this->itemInstances
+     * @param CacheItemInterface|string $item
+     * @throws \InvalidArgumentException
+     */
+    protected function deregisterItem($item)
+    {
+        if($item instanceof CacheItemInterface){
+            unset($this->itemInstances[ $item->getKey() ]);
+
+        }else if(is_string($item)){
+            unset($this->itemInstances[ $item ]);
+        }else{
+            throw new \InvalidArgumentException('Invalid type for $item variable');
+        }
+        if(gc_enabled()){
+            gc_collect_cycles();
+        }
+    }
+    /**
+     * @param ExtendedCacheItemInterface $item
+     */
+    protected function cleanItemTags(ExtendedCacheItemInterface $item)
+    {
+        $this->driverWriteTags($item->removeTags($item->getTags()));
+    }
+
+    /**
+     * Returns true if the item exists, is attached and the Spl Hash matches
+     * Returns false if the item exists, is attached and the Spl Hash mismatches
+     * Returns null if the item does not exists
+     *
+     * @param \Psr\Cache\CacheItemInterface $item
+     * @return bool|null
+     * @throws \LogicException
+     */
+    public function isAttached(CacheItemInterface $item)
+    {
+        if(isset($this->itemInstances[$item->getKey()])){
+            return spl_object_hash($item) === spl_object_hash($this->itemInstances[ $item->getKey() ]);
+        }
+        return null;
     }
 }

@@ -287,7 +287,11 @@
                                     <span><i class="bi bi-fire">Dibaca {{ $berita->views }} Kali</i></span>
                                 </div>
 
-                                <img src="{{ asset('storage/' . $berita->gambar) }}" alt="Gambar Andalan" class="img-fluid rounded mb-5" style="height: 450px; width: 100%;">
+                                @if($berita->gambar && file_exists(public_path('storage/' . $berita->gambar)))
+                                    <img src="{{ asset('storage/' . $berita->gambar) }}" alt="Gambar Andalan" class="img-fluid rounded mb-5" style="height: 450px; width: 100%; object-fit: cover;">
+                                @else
+                                    <img src="https://via.placeholder.com/800x450/0d6efd/ffffff?text=Gambar+Tidak+Tersedia" alt="Gambar Andalan" class="img-fluid rounded mb-5" style="height: 450px; width: 100%; object-fit: cover;">
+                                @endif
                                 <p>{!! $berita->body !!}</p>
 
                                 <i class="bi bi-tags"></i> <a href="#" type="button" class="btn btn-secondary btn-sm my-2">{{ $berita->kategori->kategori }}</a>
@@ -417,7 +421,11 @@
                                 @foreach ($beritaPopuler as $berita)
                                 <div class="row mt-3">
                                     <div class="col-md-5">
-                                        <img src="{{ asset('storage/' . $berita->gambar) }}" width="100%" height="100%" style="border-radius: 5px">
+                                        @if($berita->gambar && file_exists(public_path('storage/' . $berita->gambar)))
+                                            <img src="{{ asset('storage/' . $berita->gambar) }}" width="100%" height="100%" style="border-radius: 5px; object-fit: cover;">
+                                        @else
+                                            <img src="https://via.placeholder.com/200x150/0d6efd/ffffff?text=No+Image" width="100%" height="100%" style="border-radius: 5px; object-fit: cover;">
+                                        @endif
                                     </div>
                                     <div class="col-md-7 mt-2">
                                         <a href="/berita/{{ $berita->slug }}" style="color: inherit;">

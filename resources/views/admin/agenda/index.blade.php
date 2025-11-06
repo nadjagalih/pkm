@@ -48,21 +48,23 @@
                                         <td>{{ $agenda->tanggal_selesai ? $agenda->tanggal_selesai->format('d/m/Y H:i') : '-' }}</td>
                                         <td>{{ $agenda->tempat ?? '-' }}</td>
                                         <td>
-                                            <span class="color-box" data-color="{{ $agenda->warna }}"></span>
+                                            <div class="d-flex align-items-center">
+                                                <span class="color-box" {!! 'style="background-color: ' . $agenda->warna . '"' !!}></span>
+                                            </div>
                                         </td>
                                         <td>
                                             @if($agenda->status == 'Aktif')
-                                                <span class="badge badge-success">Aktif</span>
+                                                <span class="badge text-bg-success p-2">Aktif</span>
                                             @elseif($agenda->status == 'Selesai')
-                                                <span class="badge badge-secondary">Selesai</span>
+                                                <span class="badge text-bg-secondary p-2">Selesai</span>
                                             @else
-                                                <span class="badge badge-danger">Dibatalkan</span>
+                                                <span class="badge text-bg-danger p-2">Dibatalkan</span>
                                             @endif
                                         </td>
                                         <td>
                                             <a href="{{ route('agenda.edit', $agenda->id) }}" 
-                                               class="btn btn-warning btn-sm">
-                                                <i class="fas fa-edit"></i>
+                                               class="btn btn-warning mb-1">
+                                                <i class="ti ti-edit"></i>
                                             </a>
                                             <form action="{{ route('agenda.destroy', $agenda->id) }}" 
                                                   method="POST" 
@@ -70,8 +72,8 @@
                                                   onsubmit="return confirm('Yakin ingin menghapus agenda ini?')">
                                                 @csrf
                                                 @method('DELETE')
-                                                <button type="submit" class="btn btn-danger btn-sm">
-                                                    <i class="fas fa-trash"></i>
+                                                <button type="submit" class="btn btn-danger mb-1">
+                                                    <i class="ti ti-trash"></i>
                                                 </button>
                                             </form>
                                         </td>
@@ -90,25 +92,17 @@
     </div>
 </div>
 
+@endsection
+
 @push('styles')
 <style>
     .color-box {
         display: inline-block;
-        width: 30px;
-        height: 30px;
-        border: 1px solid #ddd;
-        border-radius: 4px;
+        width: 40px;
+        height: 40px;
+        border: 2px solid #ddd;
+        border-radius: 6px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
 </style>
 @endpush
-
-@push('scripts')
-<script>
-    // Set background color dari data attribute
-    document.querySelectorAll('.color-box').forEach(function(el) {
-        el.style.background = el.getAttribute('data-color');
-    });
-</script>
-@endpush
-
-@endsection

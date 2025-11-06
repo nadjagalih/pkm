@@ -20,8 +20,17 @@ use Psr\Cache\CacheItemInterface;
  * Interface ExtendedCacheItemInterface
  * @package phpFastCache\Cache
  */
-interface ExtendedCacheItemInterface extends CacheItemInterface
+interface ExtendedCacheItemInterface extends CacheItemInterface, \JsonSerializable
 {
+    /**
+     * Returns the encoded key for the current cache item.
+     * Usually as a MD5 hash
+     *
+     * @return string
+     *   The encoded key string for this cache item.
+     */
+    public function getEncodedKey();
+
     /**
      * @return mixed
      */

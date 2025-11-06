@@ -22,7 +22,7 @@
                     @endif
 
                     <div class="table-responsive">
-                        <table class="table table-bordered table-striped" id="berkasTable">
+                        <table class="table table-bordered table-striped">
                             <thead>
                                 <tr>
                                     <th width="5%">No</th>
@@ -47,7 +47,7 @@
                                         </td>
                                         <td>
                                             @if($item->kategori)
-                                                <span class="badge badge-info">{{ $item->kategori }}</span>
+                                                <span class="badge text-bg-info p-2">{{ $item->kategori }}</span>
                                             @else
                                                 <span class="text-muted">-</span>
                                             @endif
@@ -67,27 +67,27 @@
                                             <i class="fas {{ $iconClass }}"></i> {{ $item->file_name }}
                                         </td>
                                         <td>{{ $item->file_size ?? '-' }}</td>
-                                        <td><span class="badge badge-secondary">{{ $item->download_count }}</span></td>
+                                        <td><span class="badge text-bg-secondary p-2">{{ $item->download_count }}</span></td>
                                         <td>
                                             @if($item->status == 'Aktif')
-                                                <span class="badge badge-success">Aktif</span>
+                                                <span class="badge text-bg-success p-2">Aktif</span>
                                             @else
-                                                <span class="badge badge-secondary">Non-Aktif</span>
+                                                <span class="badge text-bg-secondary p-2">Non-Aktif</span>
                                             @endif
                                         </td>
                                         <td>
-                                            <a href="{{ route('berkas.edit', $item->id) }}" class="btn btn-sm btn-warning">
-                                                <i class="fas fa-edit"></i>
+                                            <a href="{{ route('berkas.edit', $item->id) }}" class="btn btn-warning mb-1">
+                                                <i class="ti ti-edit"></i>
                                             </a>
                                             <form action="{{ route('berkas.destroy', $item->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Yakin ingin menghapus berkas ini?')">
                                                 @csrf
                                                 @method('DELETE')
-                                                <button type="submit" class="btn btn-sm btn-danger">
-                                                    <i class="fas fa-trash"></i>
+                                                <button type="submit" class="btn btn-danger mb-1">
+                                                    <i class="ti ti-trash"></i>
                                                 </button>
                                             </form>
-                                            <a href="{{ route('berkas.download', $item->id) }}" class="btn btn-sm btn-info" target="_blank">
-                                                <i class="fas fa-download"></i>
+                                            <a href="{{ route('berkas.download', $item->id) }}" class="btn btn-info mb-1" target="_blank">
+                                                <i class="ti ti-download"></i>
                                             </a>
                                         </td>
                                     </tr>
@@ -104,17 +104,4 @@
         </div>
     </div>
 </div>
-
-@push('scripts')
-<script>
-    $(document).ready(function() {
-        $('#berkasTable').DataTable({
-            "order": [[0, "desc"]],
-            "language": {
-                "url": "//cdn.datatables.net/plug-ins/1.10.24/i18n/Indonesian.json"
-            }
-        });
-    });
-</script>
-@endpush
 @endsection

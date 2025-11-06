@@ -7,6 +7,7 @@ use App\Models\Sambutan;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Auth;
 
 class AdminSambutanController extends Controller
 {
@@ -69,7 +70,7 @@ class AdminSambutanController extends Controller
             'tempat' => $request->tempat,
             'tanggal' => $request->tanggal,
             'status' => $request->status ?? 'Aktif',
-            'user_id' => auth()->user()->id
+            'user_id' => Auth::id()
         ]);
 
         return redirect('/admin/sambutan')->with('success', 'Berhasil menambahkan sambutan');
@@ -130,7 +131,7 @@ class AdminSambutanController extends Controller
             'tempat' => $request->tempat,
             'tanggal' => $request->tanggal,
             'status' => $request->status ?? 'Aktif',
-            'user_id' => auth()->user()->id
+            'user_id' => Auth::id()
         ]);
 
         return redirect('/admin/sambutan')->with('success', 'Berhasil memperbarui sambutan');

@@ -56,9 +56,19 @@
                <div class="card">
                     <div class="card-body">
                         <div class="mb-3">
-                            <img src="{{ asset('storage/' .$berita->gambar) }}" class="img-preview img-fluid mb-3 mt-2" id="preview" style="border-radius: 5px; max-height:300px; overflow:hidden;"><br>
                             <label for="gambar" class="form-label">Gambar Slider <span style="color: red">*</span></label>
-                            <input class="form-control" type="file" id="gambar" name="gambar" onchange="previewImage()">
+                            @if($berita->gambar && file_exists(public_path('storage/' . $berita->gambar)))
+                                <img src="{{ asset('storage/' . $berita->gambar) }}" class="img-preview img-fluid mb-3 d-block" id="preview" style="border-radius: 5px; max-height:300px; width: 100%; object-fit: cover;">
+                            @else
+                                <img class="img-preview img-fluid mb-3 d-block" id="preview" style="border-radius: 5px; max-height:300px; width: 100%; object-fit: cover; display: none;">
+                                @if($berita->gambar && !file_exists(public_path('storage/' . $berita->gambar)))
+                                    <div class="alert alert-warning mb-3">
+                                        <small><i class="ti ti-alert-circle"></i> Gambar sebelumnya tidak ditemukan. Silakan upload gambar baru.</small>
+                                    </div>
+                                @endif
+                            @endif
+                            <input class="form-control" type="file" id="gambar" name="gambar" onchange="previewImage()" accept="image/jpeg,image/jpg,image/png">
+                            <small class="text-muted">Format: JPEG, JPG, PNG</small>
                             @error('gambar')
                                 <div class="text-danger">{{ $message }}</div>
                             @enderror
@@ -119,15 +129,42 @@
 <!-- Preview Image -->
 <script>
     function previewImage(){
-        var preview     = document.getElementById('preview');
-        var fileInput   = document.getElementById('gambar');
-        var file        = fileInput.files[0];
-        var reader      = new FileReader();
-
-        reader.onload = function(e){
-            preview.src = e.target.result;
-        };
-        reader.readAsDataURL(file);
+        const preview   = document.getElementById('preview');
+        const fileInput = document.getElementById('gambar');
+        const file      = fileInput.files[0];
+        
+        if(file){
+            // Validasi tipe file
+            const validTypes = ['image/jpeg', 'image/jpg', 'image/png'];
+            if(!validTypes.includes(file.type)){
+                alert('Format file harus JPEG, JPG, atau PNG');
+                fileInput.value = '';
+                return;
+            }
+            
+            // Validasi ukuran file (max 2MB)
+            const maxSize = 2 * 1024 * 1024; // 2MB
+            if(file.size > maxSize){
+                alert('Ukuran file maksimal 2MB');
+                fileInput.value = '';
+                return;
+            }
+            
+            const reader = new FileReader();
+            
+            reader.onload = function(e){
+                preview.src = e.target.result;
+                preview.style.display = 'block';
+                console.log('Preview image loaded successfully');
+            };
+            
+            reader.onerror = function(e){
+                console.error('Error reading file:', e);
+                alert('Gagal membaca file gambar');
+            };
+            
+            reader.readAsDataURL(file);
+        }
     }
 </script>
 

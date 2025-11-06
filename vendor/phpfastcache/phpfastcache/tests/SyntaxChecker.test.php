@@ -4,6 +4,7 @@
  * @author Khoa Bui (khoaofgod)  <khoaofgod@gmail.com> http://www.phpfastcache.com
  * @author Georges.L (Geolim4)  <contact@geolim4.com>
  */
+
 function read_dir($dir, $ext = null)
 {
     $list = [];
@@ -39,14 +40,14 @@ foreach ($list as $file) {
      * @todo Make the exclusions much cleaner
      */
     if (strpos($file, '/vendor/composer') === false && strpos($file, '/bin/stubs') === false) {
-        exec('php -lf "' . $file . '"', $output, $status);
+        exec('php -l "' . $file . '"', $output, $status);
     } else {
         echo '[SKIP] ' . $file;
         echo "\n";
         continue;
     }
 
-    if ($status != 0) {
+    if ($status !== 0) {
         $exit = $status;
         echo '[FAIL]';
     } else {

@@ -22,17 +22,23 @@ use phpFastCache\Exceptions\phpFastCacheDriverCheckException;
  * Class CacheManager
  * @package phpFastCache
  *
- * @method static DriverAbstract Apc() Apc($config = []) Return a driver "apc" instance
- * @method static DriverAbstract Cookie() Cookie($config = []) Return a driver "cookie" instance
- * @method static DriverAbstract Files() Files($config = []) Return a driver "files" instance
- * @method static DriverAbstract Memcache() Memcache($config = []) Return a driver "memcache" instance
- * @method static DriverAbstract Memcached() Memcached($config = []) Return a driver "memcached" instance
- * @method static DriverAbstract Predis() Predis($config = []) Return a driver "predis" instance
- * @method static DriverAbstract Redis() Redis($config = []) Return a driver "redis" instance
- * @method static DriverAbstract Sqlite() Sqlite($config = []) Return a driver "sqlite" instance
- * @method static DriverAbstract Ssdb() Ssdb($config = []) Return a driver "ssdb" instance
- * @method static DriverAbstract Wincache() Wincache($config = []) Return a driver "wincache" instance
- * @method static DriverAbstract Xcache() Xcache($config = []) Return a driver "xcache" instance
+ * @method static ExtendedCacheItemPoolInterface Apc() Apc($config = []) Return a driver "apc" instance
+ * @method static ExtendedCacheItemPoolInterface Apcu() Apcu($config = []) Return a driver "apcu" instance
+ * @method static ExtendedCacheItemPoolInterface Cookie() Cookie($config = []) Return a driver "cookie" instance
+ * @method static ExtendedCacheItemPoolInterface Couchbase() Couchbase($config = []) Return a driver "couchbase" instance
+ * @method static ExtendedCacheItemPoolInterface Files() Files($config = []) Return a driver "files" instance
+ * @method static ExtendedCacheItemPoolInterface Leveldb() Leveldb($config = []) Return a driver "leveldb" instance
+ * @method static ExtendedCacheItemPoolInterface Memcache() Memcache($config = []) Return a driver "memcache" instance
+ * @method static ExtendedCacheItemPoolInterface Memcached() Memcached($config = []) Return a driver "memcached" instance
+ * @method static ExtendedCacheItemPoolInterface Mongodb() Mongodb($config = []) Return a driver "mongodb" instance
+ * @method static ExtendedCacheItemPoolInterface Predis() Predis($config = []) Return a driver "predis" instance
+ * @method static ExtendedCacheItemPoolInterface Redis() Redis($config = []) Return a driver "redis" instance
+ * @method static ExtendedCacheItemPoolInterface Sqlite() Sqlite($config = []) Return a driver "sqlite" instance
+ * @method static ExtendedCacheItemPoolInterface Ssdb() Ssdb($config = []) Return a driver "ssdb" instance
+ * @method static ExtendedCacheItemPoolInterface Wincache() Wincache($config = []) Return a driver "wincache" instance
+ * @method static ExtendedCacheItemPoolInterface Xcache() Xcache($config = []) Return a driver "xcache" instance
+ * @method static ExtendedCacheItemPoolInterface Zenddisk() Zenddisk($config = []) Return a driver "zend disk cache" instance
+ * @method static ExtendedCacheItemPoolInterface Zendshm() Zendshm($config = []) Return a driver "zend memory cache" instance
  *
  */
 class CacheManager
@@ -51,13 +57,15 @@ class CacheManager
      * @var array
      */
     protected static $config = [
-      'securityKey' => 'auto',// The securityKey that will be used to create sub-directory
-      'htaccess' => true,// Auto-generate .htaccess if tit is missing
-      'default_chmod' => 0777, // 0777 recommended
-      'path' => '',// if not set will be the value of sys_get_temp_dir()
-      'fallback' => false, //Fall back when old driver is not support
-      'limited_memory_each_object' => 4096, // maximum size (bytes) of object store in memory
-      'compress_data' => false, // compress stored data, if the backend supports it
+      'securityKey' => 'auto', // The securityKey that will be used to create the sub-directory
+      'ignoreSymfonyNotice' => false, // Ignore Symfony notices for Symfony projects that do not makes use of PhpFastCache's Symfony Bundle
+      'defaultTtl' => 900, // Default time-to-live in seconds
+      'htaccess' => true, // Auto-generate .htaccess if it is missing
+      'default_chmod' => 0777, // 0777 is recommended
+      'path' => '', // If not set will be the value of sys_get_temp_dir()
+      'fallback' => false, // Fall back when old driver is not supported
+      'limited_memory_each_object' => 4096, // Maximum size (bytes) of object store in memory
+      'compress_data' => false, // Compress stored data if the backend supports it
     ];
 
     /**
@@ -91,6 +99,9 @@ class CacheManager
         $instance = crc32($driver . serialize($config));
         if (!isset(self::$instances[ $instance ])) {
             $badPracticeOmeter[$driver] = 1;
+            if(!$config['ignoreSymfonyNotice'] && interface_exists('Symfony\Component\HttpKernel\KernelInterface') && !class_exists('phpFastCache\Bundle\phpFastCacheBundle')){
+                trigger_error('A Symfony Bundle to make the PhpFastCache integration more easier is now available here: https://github.com/PHPSocialNetwork/phpfastcache-bundle', E_USER_NOTICE);
+            }
             $class = self::getNamespacePath() . $driver . '\Driver';
             try{
                 self::$instances[ $instance ] = new $class($config);
@@ -126,6 +137,7 @@ class CacheManager
                 try {
                     self::getInstance($driver, $config);
                     $autoDriver = $driver;
+                    break;
                 } catch (phpFastCacheDriverCheckException $e) {
                     continue;
                 }
@@ -152,9 +164,7 @@ class CacheManager
      */
     public static function clearInstances()
     {
-        foreach (self::$instances as &$instance) {
-            unset($instance);
-        }
+        self::$instances = [];
 
         gc_collect_cycles();
         return !count(self::$instances);
@@ -179,12 +189,12 @@ class CacheManager
     /**
      * @param $name
      * @param string $value
-     * @deprecated Method "setup" is deprecated and will be removed in 5.1. Use method "setDefaultConfig" instead.
+     * @deprecated Method "setup" is deprecated and will be removed in V6. Use method "setDefaultConfig" instead.
      * @throws \InvalidArgumentException
      */
     public static function setup($name, $value = '')
     {
-        trigger_error('Method "setup" is deprecated and will be removed in 5.1. Use method "setDefaultConfig" instead.');
+        trigger_error('Method "setup" is deprecated and will be removed in V6 Use method "setDefaultConfig" instead.', E_USER_DEPRECATED);
         self::setDefaultConfig($name, $value);
     }
 
@@ -232,6 +242,8 @@ class CacheManager
           'Leveldb',
           'Wincache',
           'Xcache',
+          'Zenddisk',
+          'Zendshm',
           'Devnull',
         ];
     }

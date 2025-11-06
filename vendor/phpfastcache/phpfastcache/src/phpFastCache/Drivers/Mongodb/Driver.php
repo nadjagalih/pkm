@@ -22,7 +22,6 @@ use MongoConnectionException;
 use MongoCursorException;
 use MongoDate;
 use phpFastCache\Core\DriverAbstract;
-use phpFastCache\Core\StandardPsr6StructureTrait;
 use phpFastCache\Entities\driverStatistic;
 use phpFastCache\Exceptions\phpFastCacheDriverCheckException;
 use phpFastCache\Exceptions\phpFastCacheDriverException;
@@ -31,14 +30,10 @@ use Psr\Cache\CacheItemInterface;
 /**
  * Class Driver
  * @package phpFastCache\Drivers
+ * @property MongodbClient $instance Instance of driver service
  */
 class Driver extends DriverAbstract
 {
-    /**
-     * @var MongodbClient
-     */
-    public $instance;
-
     /**
      * Driver constructor.
      * @param array $config
@@ -60,7 +55,7 @@ class Driver extends DriverAbstract
      */
     public function driverCheck()
     {
-        return extension_loaded('Mongodb');
+        return class_exists('MongoClient');
     }
 
     /**
@@ -141,7 +136,7 @@ class Driver extends DriverAbstract
      */
     protected function driverClear()
     {
-        return $this->getCollection()->drop();
+        return (bool) $this->getCollection()->drop()['ok'];
     }
 
     /**
@@ -155,8 +150,8 @@ class Driver extends DriverAbstract
             throw new LogicException('Already connected to Mongodb server');
         } else {
             $host = isset($this->config[ 'host' ]) ? $this->config[ 'host' ] : '127.0.0.1';
-            $port = isset($server[ 'port' ]) ? $server[ 'port' ] : '27017';
-            $timeout = isset($server[ 'timeout' ]) ? $server[ 'timeout' ] : 3;
+            $port = isset($this->config[ 'port' ]) ? $this->config[ 'port' ] : '27017';
+            $timeout = isset($this->config[ 'timeout' ]) ? $this->config[ 'timeout' ] : 3;
             $password = isset($this->config[ 'password' ]) ? $this->config[ 'password' ] : '';
             $username = isset($this->config[ 'username' ]) ? $this->config[ 'username' ] : '';
 

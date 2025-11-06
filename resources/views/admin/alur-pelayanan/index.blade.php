@@ -64,8 +64,8 @@
                                         </td>
                                         <td>
                                             <a href="{{ route('alur-pelayanan.edit', $alur->id) }}" 
-                                               class="btn btn-warning btn-sm">
-                                                <i class="fas fa-edit"></i>
+                                               class="btn btn-warning mb-1">
+                                                <i class="ti ti-edit"></i>
                                             </a>
                                             <form action="{{ route('alur-pelayanan.destroy', $alur->id) }}" 
                                                   method="POST" 
@@ -73,8 +73,8 @@
                                                   onsubmit="return confirm('Yakin ingin menghapus alur pelayanan ini?')">
                                                 @csrf
                                                 @method('DELETE')
-                                                <button type="submit" class="btn btn-danger btn-sm">
-                                                    <i class="fas fa-trash"></i>
+                                                <button type="submit" class="btn btn-danger mb-1">
+                                                    <i class="ti ti-trash"></i>
                                                 </button>
                                             </form>
                                         </td>
