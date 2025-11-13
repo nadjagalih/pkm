@@ -20,7 +20,11 @@ class AdminMenuController extends Controller
      */
     public function index()
     {
-        $menus = Menu::with(['children.page', 'page'])->whereNull('parent_id')->ordered()->get();
+        $menus = Menu::with(['children.page', 'page'])
+            ->excludeStatic()
+            ->whereNull('parent_id')
+            ->ordered()
+            ->get();
         return view('admin.menu.index', compact('menus'));
     }
 
@@ -29,7 +33,10 @@ class AdminMenuController extends Controller
      */
     public function create(Request $request)
     {
-        $parentMenus = Menu::whereNull('parent_id')->ordered()->get();
+        $parentMenus = Menu::whereNull('parent_id')
+            ->excludeStatic()
+            ->ordered()
+            ->get();
         $selectedParentId = $request->get('parent_id');
         return view('admin.menu.create', compact('parentMenus', 'selectedParentId'));
     }
@@ -97,6 +104,7 @@ class AdminMenuController extends Controller
     public function edit(Menu $menu)
     {
         $parentMenus = Menu::whereNull('parent_id')
+            ->excludeStatic()
             ->where('id', '!=', $menu->id)
             ->ordered()
             ->get();

@@ -25,6 +25,11 @@
                         </div>
                     @endif
 
+                    <div class="alert alert-info">
+                        <i class="ti ti-info-circle"></i> 
+                        <strong>Informasi:</strong> Menu <strong>Beranda</strong> dan <strong>Kontak</strong> adalah menu statis yang tidak dapat diubah melalui sistem manajemen menu ini.
+                    </div>
+
                     <div class="mb-3">
                         <a href="{{ route('menu.create') }}" class="btn btn-primary">
                             <i class="ti ti-plus"></i> Tambah Menu

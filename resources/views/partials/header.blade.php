@@ -431,6 +431,14 @@
                     $currentPath = Request::path();
                 @endphp
                 
+                {{-- Menu Statis Beranda --}}
+                <li>
+                    <a class="nav-link scrollto {{ $currentPath === '' || $currentPath === '/' ? 'active' : '' }}" 
+                       href="/">
+                        <span>Beranda</span>
+                    </a>
+                </li>
+                
                 {{-- Menu Dinamis dari Database --}}
                 @foreach($headerMenus as $menu)
                     @php
@@ -478,6 +486,14 @@
                         </li>
                     @endif
                 @endforeach
+
+                {{-- Menu Statis Kontak --}}
+                <li>
+                    <a class="nav-link scrollto {{ $currentPath === 'kontak' ? 'active' : '' }}" 
+                       href="/kontak">
+                        <span>Kontak</span>
+                    </a>
+                </li>
 
                 <!-- Desktop Login SKM Button -->
                 @php

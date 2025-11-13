@@ -13,6 +13,7 @@ class MenuHelper
     public static function getMenus($position = 'header')
     {
         return Menu::active()
+            ->excludeStatic()
             ->position($position)
             ->parent()
             ->ordered()

@@ -74,6 +74,14 @@ class Menu extends Model
     }
 
     /**
+     * Scope a query to exclude static menus (Beranda and Kontak).
+     */
+    public function scopeExcludeStatic($query)
+    {
+        return $query->whereNotIn('slug', ['beranda', 'kontak']);
+    }
+
+    /**
      * Scope a query to only include parent menus (no parent_id).
      */
     public function scopeParent($query)
