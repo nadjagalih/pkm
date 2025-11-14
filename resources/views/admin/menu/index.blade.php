@@ -27,7 +27,14 @@
 
                     <div class="alert alert-info">
                         <i class="ti ti-info-circle"></i> 
-                        <strong>Informasi:</strong> Menu <strong>Beranda</strong> dan <strong>Kontak</strong> adalah menu statis yang tidak dapat diubah melalui sistem manajemen menu ini.
+                        <strong>Informasi:</strong> Menu utama berikut adalah menu statis yang tidak dapat diubah melalui sistem manajemen menu ini:
+                        <ul class="mb-0 mt-2">
+                            <li><strong>Beranda</strong></li>
+                            <li><strong>Profil</strong> (Sambutan, Profil Puskemas, Visi & Misi, Struktur Organisasi)</li>
+                            <li><strong>Informasi</strong> (Berita, Pengumuman, Agenda, Galeri, Berkas)</li>
+                            <li><strong>Layanan Kesehatan</strong> (Layanan, Alur Pelayanan)</li>
+                            <li><strong>Kontak</strong></li>
+                        </ul>
                     </div>
 
                     <div class="mb-3">

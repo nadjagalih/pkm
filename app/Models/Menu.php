@@ -74,11 +74,31 @@ class Menu extends Model
     }
 
     /**
-     * Scope a query to exclude static menus (Beranda and Kontak).
+     * Scope a query to exclude static menus (Beranda, Kontak, and main menus).
      */
     public function scopeExcludeStatic($query)
     {
-        return $query->whereNotIn('slug', ['beranda', 'kontak']);
+        return $query->whereNotIn('slug', [
+            'beranda', 
+            'kontak',
+            'profil',
+            'informasi',
+            'layanan-kesehatan',
+            // Submenu Profil
+            'sambutan',
+            'profil-puskemas',
+            'visi-misi',
+            'struktur-organisasi',
+            // Submenu Informasi
+            'berita',
+            'pengumuman',
+            'agenda',
+            'galeri',
+            'berkas',
+            // Submenu Layanan
+            'layanan',
+            'alur-pelayanan'
+        ]);
     }
 
     /**

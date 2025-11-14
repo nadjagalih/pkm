@@ -439,6 +439,82 @@
                     </a>
                 </li>
                 
+                {{-- Menu Statis Profil --}}
+                <li class="dropdown {{ Request::is('profil*') || Request::is('sambutan') || Request::is('visi-misi') || Request::is('struktur-organisasi') ? 'active' : '' }}">
+                    <a href="#"><span>Profil</span> <i class="bi bi-chevron-down"></i></a>
+                    <ul>
+                        <li>
+                            <a href="/sambutan" class="{{ Request::is('sambutan') ? 'active' : '' }}">
+                                Sambutan
+                            </a>
+                        </li>
+                        <li>
+                            <a href="/profil" class="{{ Request::is('profil') ? 'active' : '' }}">
+                                Profil Puskemas
+                            </a>
+                        </li>
+                        <li>
+                            <a href="/visi-misi" class="{{ Request::is('visi-misi') ? 'active' : '' }}">
+                                Visi & Misi
+                            </a>
+                        </li>
+                        <li>
+                            <a href="/struktur-organisasi" class="{{ Request::is('struktur-organisasi') ? 'active' : '' }}">
+                                Struktur Organisasi
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+
+                {{-- Menu Statis Informasi --}}
+                <li class="dropdown {{ Request::is('berita*') || Request::is('pengumuman*') || Request::is('agenda*') || Request::is('gallery*') || Request::is('berkas*') ? 'active' : '' }}">
+                    <a href="#"><span>Informasi</span> <i class="bi bi-chevron-down"></i></a>
+                    <ul>
+                        <li>
+                            <a href="/berita" class="{{ Request::is('berita*') ? 'active' : '' }}">
+                                Berita
+                            </a>
+                        </li>
+                        <li>
+                            <a href="/pengumuman" class="{{ Request::is('pengumuman*') ? 'active' : '' }}">
+                                Pengumuman
+                            </a>
+                        </li>
+                        <li>
+                            <a href="/agenda" class="{{ Request::is('agenda*') ? 'active' : '' }}">
+                                Agenda
+                            </a>
+                        </li>
+                        <li>
+                            <a href="/gallery" class="{{ Request::is('gallery*') ? 'active' : '' }}">
+                                Galeri
+                            </a>
+                        </li>
+                        <li>
+                            <a href="/berkas" class="{{ Request::is('berkas*') ? 'active' : '' }}">
+                                Berkas
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+
+                {{-- Menu Statis Layanan Kesehatan --}}
+                <li class="dropdown {{ Request::is('layanan*') || Request::is('alur-pelayanan') ? 'active' : '' }}">
+                    <a href="#"><span>Layanan Kesehatan</span> <i class="bi bi-chevron-down"></i></a>
+                    <ul>
+                        <li>
+                            <a href="/layanan" class="{{ Request::is('layanan') ? 'active' : '' }}">
+                                Layanan
+                            </a>
+                        </li>
+                        <li>
+                            <a href="/alur-pelayanan" class="{{ Request::is('alur-pelayanan') ? 'active' : '' }}">
+                                Alur Pelayanan
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+                
                 {{-- Menu Dinamis dari Database --}}
                 @foreach($headerMenus as $menu)
                     @php
